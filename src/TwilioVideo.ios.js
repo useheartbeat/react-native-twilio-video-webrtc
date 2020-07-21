@@ -125,11 +125,6 @@ export default class extends Component {
      */
     onCameraWasInterrupted: PropTypes.func,
     /**
-     * Called when the camera interruption has ended
-     *
-     */
-    onCameraInterruptionEnded: PropTypes.func,
-    /**
      * Called when the camera has stopped runing with an error
      *
      * @param {{error}} The error message description
@@ -148,10 +143,19 @@ export default class extends Component {
 
     this._subscriptions = []
     this._eventEmitter = new NativeEventEmitter(TWVideoModule)
+
+    this.setLocalVideoEnabled = this.setLocalVideoEnabled.bind(this)
+    this.setLocalAudioEnabled = this.setLocalAudioEnabled.bind(this)
+    this.flipCamera = this.flipCamera.bind(this)
+    this.connect = this.connect.bind(this)
+    this.disconnect = this.disconnect.bind(this)
+    this.sendString = this.sendString.bind(this)
+    this.setRemoteAudioPlayback = this.setRemoteAudioPlayback.bind(this)
   }
 
   componentWillMount () {
     this._registerEvents()
+    this._startLocalVideo()
     this._startLocalAudio()
   }
 
@@ -215,10 +219,9 @@ export default class extends Component {
    * Connect to given room name using the JWT access token
    * @param  {String} roomName    The connecting room name
    * @param  {String} accessToken The Twilio's JWT access token
-   * @param  {String} encodingParameters Control Encoding config
    */
-  connect ({ roomName, accessToken, enableVideo = true, encodingParameters }) {
-    TWVideoModule.connect(accessToken, roomName, enableVideo, encodingParameters)
+  connect ({ roomName, accessToken }) {
+    TWVideoModule.connect(accessToken, roomName)
   }
 
   /**
@@ -226,34 +229,6 @@ export default class extends Component {
    */
   disconnect () {
     TWVideoModule.disconnect()
-  }
-
-  /**
-   * Publish a local audio track
-   */
-  publishLocalAudio () {
-    TWVideoModule.publishLocalAudio()
-  }
-
-  /**
-   * Publish a local video track
-   */
-  publishLocalVideo () {
-    TWVideoModule.publishLocalVideo()
-  }
-
-  /**
-   * Unpublish a local audio track
-   */
-  unpublishLocalAudio () {
-    TWVideoModule.unpublishLocalAudio()
-  }
-
-  /**
-   * Unpublish a local video track
-   */
-  unpublishLocalVideo () {
-    TWVideoModule.unpublishLocalVideo()
   }
 
   /**
@@ -265,7 +240,8 @@ export default class extends Component {
   }
 
   _startLocalVideo () {
-    TWVideoModule.startLocalVideo()
+    const screenShare = this.props.screenShare || false
+    TWVideoModule.startLocalVideo(screenShare)
   }
 
   _stopLocalVideo () {
@@ -377,11 +353,6 @@ export default class extends Component {
       this._eventEmitter.addListener('cameraWasInterrupted', data => {
         if (this.props.onCameraWasInterrupted) {
           this.props.onCameraWasInterrupted(data)
-        }
-      }),
-      this._eventEmitter.addListener('cameraInterruptionEnded', data => {
-        if (this.props.onCameraInterruptionEnded) {
-          this.props.onCameraInterruptionEnded(data)
         }
       }),
       this._eventEmitter.addListener('cameraDidStopRunning', data => {
