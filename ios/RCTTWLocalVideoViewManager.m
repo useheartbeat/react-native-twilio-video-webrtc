@@ -24,7 +24,6 @@ RCT_CUSTOM_VIEW_PROPERTY(scalesType, NSInteger, TVIVideoView) {
 - (UIView *)view {
   UIView *container = [[UIView alloc] init];
   TVIVideoView *inner = [[TVIVideoView alloc] init];
-  inner.autoresizingMask = (UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth);
   [container addSubview:inner];
   return container;
 }
