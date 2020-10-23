@@ -51,6 +51,10 @@ static NSString* statsReceived                = @"statsReceived";
 
 RCT_EXPORT_MODULE();
 
+- (void)dealloc {
+  [self clearCameraInstance];
+}
+
 - (dispatch_queue_t)methodQueue {
   return dispatch_get_main_queue();
 }
@@ -148,6 +152,30 @@ RCT_EXPORT_METHOD(stopLocalVideo) {
 
 RCT_EXPORT_METHOD(stopLocalAudio) {
   self.localAudioTrack = nil;
+}
+
+RCT_EXPORT_METHOD(publishLocalVideo) {
+  if(self.localVideoTrack != nil){
+    TVILocalParticipant *localParticipant = self.room.localParticipant;
+    [localParticipant publishVideoTrack:self.localVideoTrack];
+  }
+}
+
+RCT_EXPORT_METHOD(publishLocalAudio) {
+  TVILocalParticipant *localParticipant = self.room.localParticipant;
+  [localParticipant publishAudioTrack:self.localAudioTrack];
+}
+
+RCT_EXPORT_METHOD(unpublishLocalVideo) {
+  if(self.localVideoTrack != nil){
+    TVILocalParticipant *localParticipant = self.room.localParticipant;
+    [localParticipant unpublishVideoTrack:self.localVideoTrack];
+  }
+}
+
+RCT_EXPORT_METHOD(unpublishLocalAudio) {
+  TVILocalParticipant *localParticipant = self.room.localParticipant;
+  [localParticipant unpublishAudioTrack:self.localAudioTrack];
 }
 
 RCT_REMAP_METHOD(setLocalAudioEnabled, enabled:(BOOL)enabled setLocalAudioEnabledWithResolver:(RCTPromiseResolveBlock)resolve
@@ -338,6 +366,7 @@ RCT_EXPORT_METHOD(sendString:(nonnull NSString *)message) {
 }
 
 RCT_EXPORT_METHOD(disconnect) {
+  [self clearCameraInstance];
   [self.room disconnect];
 }
 
@@ -350,6 +379,15 @@ RCT_EXPORT_METHOD(disconnect) {
     builder.maxFrameRate = TVIVideoConstraintsFrameRateNone;
   }];
 }
+- (void)clearCameraInstance {
+    // We are done with camera
+    if (self.camera) {
+        [self.camera stopCapture];
+        self.camera = nil;
+    }
+}
+
+# pragma mark - Common
 
 # pragma mark - TVICameraCapturerDelegate
 
